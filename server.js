@@ -45,7 +45,6 @@ app.post('/products',function(req,res){
 	//push body into array
 	products.push(body);
 
-	console.log('description '+body.description);
 
 	res.json(body);
 
@@ -55,7 +54,6 @@ app.delete('/products/:id',function(req,res){
 	var prodid = parseInt(req.params.id,10);
 
 	var matchedprod=_.findWhere(products, {id : prodid});
-	console.log(matchedprod);
 	if(matchedprod){
 		products=_.without(products,matchedprod);
 		res.json(products);
@@ -63,6 +61,40 @@ app.delete('/products/:id',function(req,res){
 	else{
 		res.status(404).json({"error":"Product to be deleted not found"});
 	}
+});
+
+app.put('/products/:id',function(req,res){
+	var prodid = parseInt(req.params.id,10);
+	var matchedprod=_.findWhere(products, {id : prodid});
+	var body= _.pick(req.body,'name','description','manufacturer');
+	var validAtrributes = {};
+
+	if(!matchedprod){
+		return res.status(404).send();
+	}
+
+	if(body.hasOwnProperty('name') && _.isString(body.name)){
+		validAtrributes.name=body.name;
+	}else if(body.hasOwnProperty('name')){
+		return res.status(400).send();
+	}
+
+	if(body.hasOwnProperty('description') && _.isString(body.description) && body.description.trim().length>0){
+		validAtrributes.description=body.description;
+	}else if(body.hasOwnProperty('description')){
+		return res.status(400).send();
+	}
+	
+
+
+	if(body.hasOwnProperty('manufacturer') && _.isString(body.manufacturer)&& body.manufacturer.trim().length>0){
+		validAtrributes.manufacturer=body.manufacturer;
+	}else if(body.hasOwnProperty('manufacturer')){
+		return res.status(400).send();
+	}
+
+	 _.extend(matchedprod,validAtrributes);
+	 res.json(matchedprod);
 });
 
 app.listen(PORT ,function(){
