@@ -14,7 +14,20 @@ app.get('/',function(req,res){
 });
 
 app.get('/products',function(req,res){
-	res.json(products);
+	var queryparams = req.query;
+	var filteredprods = products;
+	if(queryparams.hasOwnProperty("isecofriendly") && queryparams.isecofriendly === 'true'){
+		console.log('true' + filteredprods);
+		filteredprods = _.where(filteredprods,{isecofriendly : "true"});
+		console.log('true' + filteredprods);
+	}
+	else if(queryparams.hasOwnProperty("isecofriendly") && queryparams.isecofriendly ==='false')
+	{
+		console.log('false' + JSON.stringify(filteredprods));
+		filteredprods = _.where(filteredprods,{isecofriendly : "false"});
+		console.log('false' + JSON.stringify(filteredprods));
+	}
+	res.json(filteredprods);				
 });
 
 app.get('/products/:id',function(req,res){
@@ -32,9 +45,9 @@ app.get('/products/:id',function(req,res){
 });
 
 app.post('/products',function(req,res){
-	var body = _.pick(req.body,'name','description','manufacturer');
+	var body = _.pick(req.body,'name','description','manufacturer','isecofriendly');
 
-	if(!_.isString(body.description) || !_.isString(body.name) || !_.isString(body.manufacturer) || body.description.trim().length ===0 ||
+	if(!_.isString(body.description) || !_.isString(body.name) || _.isBoolean(body.isecofriendly )|| !_.isString(body.manufacturer) || body.description.trim().length ===0 ||
 	body.manufacturer.trim().length ===0 || body.name.trim().length ===0 ){
 		return res.status(400).send();
 	}
@@ -44,7 +57,6 @@ app.post('/products',function(req,res){
 
 	//push body into array
 	products.push(body);
-
 
 	res.json(body);
 
@@ -85,7 +97,6 @@ app.put('/products/:id',function(req,res){
 		return res.status(400).send();
 	}
 	
-
 
 	if(body.hasOwnProperty('manufacturer') && _.isString(body.manufacturer)&& body.manufacturer.trim().length>0){
 		validAtrributes.manufacturer=body.manufacturer;
