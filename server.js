@@ -1,5 +1,6 @@
 var express = require('express');
 var bodyParser = require('body-parser');
+var _=require('underscore');
 var app = express();
 var PORT = process.env.PORT || 3000;
 var products = [];
@@ -9,7 +10,7 @@ var productnextid = 1;
 app.use(bodyParser.json());
 
 app.get('/',function(req,res){
-	res.send('Todo API Root');
+	res.send('Product API ROOT');
 });
 
 app.get('/products',function(req,res){
@@ -18,17 +19,10 @@ app.get('/products',function(req,res){
 
 app.get('/products/:id',function(req,res){
 	//res.send('Asking for products with id of '+req.params.id);
-	var prodid=req.params.id;
-	//res.json('hi');
-	var matchedprod;
-	//Iterate over products array and find a match
-	for(var i =0,len = products.length ;i < len ;i++){
-		console.log(products[i].id + '   id '+prodid);
-		if(products[i].id===parseInt(prodid,10)){
-			matchedprod = products[i]; 	
-		}
-	}
-
+	var prodid=parseInt(req.params.id,10);
+	console.log(products);
+	var matchedprod = _.findWhere(products,{id: prodid});
+	console.log(matchedprod);
 	if(matchedprod){
 		res.json(matchedprod);
 	}
@@ -38,8 +32,13 @@ app.get('/products/:id',function(req,res){
 });
 
 app.post('/products',function(req,res){
-	var body=req.body;
+	var body = _.pick(req.body,'name','description','manufacturer');
 
+	if(!_.isString(body.description) || !_.isString(body.name) || !_.isString(body.manufacturer) || body.description.trim().length ===0 ||
+	body.manufacturer.trim().length ===0 || body.name.trim().length ===0 ){
+		return res.status(400).send();
+	}
+	body.description = body.description.trim();
 	//add id field 
 	body.id = productnextid++;
 
@@ -50,6 +49,20 @@ app.post('/products',function(req,res){
 
 	res.json(body);
 
+});
+
+app.delete('/products/:id',function(req,res){
+	var prodid = parseInt(req.params.id,10);
+
+	var matchedprod=_.findWhere(products, {id : prodid});
+	console.log(matchedprod);
+	if(matchedprod){
+		products=_.without(products,matchedprod);
+		res.json(products);
+	}
+	else{
+		res.status(404).json({"error":"Product to be deleted not found"});
+	}
 });
 
 app.listen(PORT ,function(){
