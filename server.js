@@ -27,6 +27,13 @@ app.get('/products',function(req,res){
 		filteredprods = _.where(filteredprods,{isecofriendly : "false"});
 		console.log('false' + JSON.stringify(filteredprods));
 	}
+
+	if(queryparams.hasOwnProperty("q") && queryparams.q.length>0){
+
+		filteredprods= _.filter(filteredprods,function(product){
+			return product.description.toLowerCase().indexOf(queryparams.q)>-1;
+		});
+	}
 	res.json(filteredprods);				
 });
 
