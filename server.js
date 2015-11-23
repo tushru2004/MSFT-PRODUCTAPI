@@ -16,44 +16,47 @@ app.get('/', function(req, res) {
 });
 
 app.get('/products', function(req, res) {
-	var queryparams = req.query;
-	var filteredprods = products;
-	if (queryparams.hasOwnProperty("isecofriendly") && queryparams.isecofriendly === 'true') {
-		console.log('true' + filteredprods);
-		filteredprods = _.where(filteredprods, {
-			isecofriendly: "true"
-		});
-		console.log('true' + filteredprods);
-	} else if (queryparams.hasOwnProperty("isecofriendly") && queryparams.isecofriendly === 'false') {
-		console.log('false' + JSON.stringify(filteredprods));
-		filteredprods = _.where(filteredprods, {
-			isecofriendly: "false"
-		});
-		console.log('false' + JSON.stringify(filteredprods));
+	var query = req.query;
+	//var filteredprods = products;
+	var where = {};
+
+	if(query.hasOwnProperty('isecofriendly') && query.isecofriendly === 'true'){
+		where.isecofriendly = true;
+	} else if (query.hasOwnProperty('isecofriendly')&& query.isecofriendly === 'false'){
+		where.isecofriendly = false;
 	}
 
-	if (queryparams.hasOwnProperty("q") && queryparams.q.length > 0) {
-
-		filteredprods = _.filter(filteredprods, function(product) {
-			return product.description.toLowerCase().indexOf(queryparams.q) > -1;
-		});
+	if(query.hasOwnProperty('q') && query.q.length >0){
+		where.description = {
+			$like : '%' + query.q + '%'
+		};
 	}
-	res.json(filteredprods);
+
+	db.Product.findAll({where:where}).then(function (products){
+		res.json(products);
+	},function (e){
+		res.status(500).send();
+	});
+
 });
 
 app.get('/products/:id', function(req, res) {
 	//res.send('Asking for products with id of '+req.params.id);
 	var prodid = parseInt(req.params.id, 10);
-	console.log(products);
-	var matchedprod = _.findWhere(products, {
-		id: prodid
+	
+
+	db.Product.findById(prodid).then(function(product){
+
+		if(!!product){
+			res.json(product.toJSON());
+		}else {
+			res.status(404).send();
+		}
+
+	},function(e){
+		res.status(500).send();
 	});
-	console.log(matchedprod);
-	if (matchedprod) {
-		res.json(matchedprod);
-	} else {
-		res.status(404).send();
-	}
+
 });
 
 app.post('/products', function(req, res) {
