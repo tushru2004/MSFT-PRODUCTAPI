@@ -68,40 +68,27 @@ app.post('/products', function(req, res) {
 	},function(e){
 		res.status(400).json(e);
 	});
-
-		//respond with 200 and product caller
-		//res.json(e)
-
-	/*if (!_.isString(body.description) || !_.isString(body.name) || _.isBoolean(body.isecofriendly) || !_.isString(body.manufacturer) || body.description.trim().length === 0 ||
-		body.manufacturer.trim().length === 0 || body.name.trim().length === 0) {
-		return res.status(400).send();
-	}
-	body.description = body.description.trim();
-	//add id field 
-	body.id = productnextid++;
-
-	//push body into array
-	products.push(body);
-
-	res.json(body);
-	*/
-
 });
 
 app.delete('/products/:id', function(req, res) {
 	var prodid = parseInt(req.params.id, 10);
 
-	var matchedprod = _.findWhere(products, {
-		id: prodid
+	db.Product.destroy({
+		where :{
+			id: prodid
+		}
+	}).then(function(rowdeletedcount){
+		if(rowdeletedcount===0){
+			res.status(404).json({error: "No product with id"});
+		}
+		else {
+			res.status(204).send();
+		}
+
+	},function(){
+		res.status(500).send();
 	});
-	if (matchedprod) {
-		products = _.without(products, matchedprod);
-		res.json(products);
-	} else {
-		res.status(404).json({
-			"error": "Product to be deleted not found"
-		});
-	}
+
 });
 
 app.put('/products/:id', function(req, res) {
