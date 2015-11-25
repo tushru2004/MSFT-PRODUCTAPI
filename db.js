@@ -18,6 +18,8 @@ var db = {};
 
 db.Product= sequelize.import(__dirname+'/models/product.js')
 
+db.User = sequelize.import(__dirname+'/models/user.js');
+
 db.sequelize= sequelize;
 
 db.SequeLize = SequeLize;

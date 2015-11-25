@@ -70,6 +70,16 @@ app.post('/products', function(req, res) {
 	});
 });
 
+app.post('/users',function(req,res){
+	var body = _.pick(req.body,'email','password');
+
+	db.User.create(body).then(function(user){
+		res.json(user.toJSON());
+	},function(e){
+		res.status(400).json(e);
+	});
+});
+
 app.delete('/products/:id', function(req, res) {
 	var prodid = parseInt(req.params.id, 10);
 
