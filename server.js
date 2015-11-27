@@ -72,10 +72,11 @@ app.post('/products', function(req, res) {
 
 app.post('/users',function(req,res){
 	var body = _.pick(req.body,'email','password');
-
+	console.log(body);
 	db.User.create(body).then(function(user){
-		res.json(user.toJSON());
+		res.json(user.toPublicJSON());
 	},function(e){
+		console.log(e);
 		res.status(400).json(e);
 	});
 });
