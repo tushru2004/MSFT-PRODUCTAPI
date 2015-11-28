@@ -2,6 +2,9 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var _ = require('underscore');
 var db = require('./db.js');
+var bcrypt= require('bcrypt');
+var Promise = require("es6-promise").Promise;
+
 
 var app = express();
 var PORT = process.env.PORT || 3000;
@@ -81,6 +84,19 @@ app.post('/users',function(req,res){
 	});
 });
 
+//user/login
+app.post('/users/login',function(req,res){
+	var body = _.pick(req.body,'email','password');
+
+	db.User.authenticate(body).then(function(user){
+		res.json(user.toPublicJSON());
+	},function(err){
+		res.status(401).send();
+	});
+	
+});
+
+
 app.delete('/products/:id', function(req, res) {
 	var prodid = parseInt(req.params.id, 10);
 
@@ -141,10 +157,16 @@ app.put('/products/:id', function(req, res) {
 });
 
 
-db.sequelize.sync().then(function(){
+db.sequelize.sync({force:true}).then(function(){
 
 	app.listen(PORT, function() {
 		console.log('Express listening on port ' + PORT + '!');
 	});
 });
 
+
+
+function IS(type, obj){
+	var clas = Object.prototype.toString.call(obj).slice(8,-1);
+	return obj!== undefined && obj!== null && type === clas;	
+}
