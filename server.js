@@ -4,7 +4,7 @@ var _ = require('underscore');
 var db = require('./db.js');
 var bcrypt= require('bcrypt');
 var Promise = require("es6-promise").Promise;
-
+var middleware  =require('./middleware.js')(db);
 
 var app = express();
 var PORT = process.env.PORT || 3000;
@@ -18,7 +18,7 @@ app.get('/', function(req, res) {
 	res.send('Product API ROOT');
 });
 
-app.get('/products', function(req, res) {
+app.get('/products',middleware.requireAuthentication ,function(req, res) {
 	var query = req.query;
 	//var filteredprods = products;
 	var where = {};
@@ -43,7 +43,7 @@ app.get('/products', function(req, res) {
 
 });
 
-app.get('/products/:id', function(req, res) {
+app.get('/products/:id', middleware.requireAuthentication,function(req, res) {
 	//res.send('Asking for products with id of '+req.params.id);
 	var prodid = parseInt(req.params.id, 10);
 	
@@ -62,7 +62,7 @@ app.get('/products/:id', function(req, res) {
 
 });
 
-app.post('/products', function(req, res) {
+app.post('/products', middleware.requireAuthentication, function(req, res) {
 	var body = _.pick(req.body, 'name', 'description', 'manufacturer', 'isecofriendly');
 
 	//call create on db.product
@@ -89,7 +89,15 @@ app.post('/users/login',function(req,res){
 	var body = _.pick(req.body,'email','password');
 
 	db.User.authenticate(body).then(function(user){
-		res.header('Auth',user.generateToken('authentication')).json(user.toPublicJSON());
+		
+		var jtoken =user.generateToken('authentication');
+
+	 	if(jtoken){
+	 		res.header('Auth',jtoken).json(user.toPublicJSON());
+	 	}else{
+	 		res.status(401).send();
+	 	}
+		
 	},function(err){
 		res.status(401).send();
 	});
@@ -97,7 +105,7 @@ app.post('/users/login',function(req,res){
 });
 
 
-app.delete('/products/:id', function(req, res) {
+app.delete('/products/:id',  middleware.requireAuthentication,function(req, res) {
 	var prodid = parseInt(req.params.id, 10);
 
 	db.Product.destroy({
@@ -118,7 +126,7 @@ app.delete('/products/:id', function(req, res) {
 
 });
 
-app.put('/products/:id', function(req, res) {
+app.put('/products/:id', middleware.requireAuthentication, function(req, res) {
 	var prodid = parseInt(req.params.id, 10);
 	/*var matchedprod = _.findWhere(products, {
 		id: prodid

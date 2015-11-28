@@ -93,6 +93,33 @@ module.exports = function(sequelize,DataTypes){
 						});
 	
 				});
+			},
+
+			findByToken: function(token){
+				return new Promise(function(resolve,reject){
+					try{
+						var decojwt = jwt.verify(token,'hhh420');
+						var bytes = cryptojs.AES.decrypt(decojwt.token,'abc1231@#!');
+						var tokendata= JSON.parse(bytes.toString(cryptojs.enc.Utf8));
+
+						user.findById(
+							tokendata.id
+						).then(function(user){
+							if(user){
+								resolve(user);
+							}else{
+								reject();
+							}
+							
+						},function(err){
+							reject();
+						});
+
+					}	
+					catch(e){
+						reject();
+					}
+				});
 			}
 		}
 	});
