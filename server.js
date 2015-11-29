@@ -67,7 +67,13 @@ app.post('/products', middleware.requireAuthentication, function(req, res) {
 
 	//call create on db.product
 	db.Product.create(body).then(function(product){
-		res.json(product.toJSON());
+		
+		req.user.addProduct(product).then(function (){
+			return product.reload();
+		}).then(function (product){
+			res.json(product.toJSON());
+		});
+
 	},function(e){
 		res.status(400).json(e);
 	});

@@ -24,4 +24,6 @@ db.sequelize= sequelize;
 
 db.SequeLize = SequeLize;
 
+db.Product.belongsTo(db.User);
+db.User.hasMany(db.Product);
 module.exports=db;
