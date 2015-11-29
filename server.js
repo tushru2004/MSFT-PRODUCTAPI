@@ -21,7 +21,9 @@ app.get('/', function(req, res) {
 app.get('/products',middleware.requireAuthentication ,function(req, res) {
 	var query = req.query;
 	//var filteredprods = products;
-	var where = {};
+	var where = {
+		userId: req.user.get('id')
+	};
 
 	if(query.hasOwnProperty('isecofriendly') && query.isecofriendly === 'true'){
 		where.isecofriendly = true;
@@ -46,9 +48,14 @@ app.get('/products',middleware.requireAuthentication ,function(req, res) {
 app.get('/products/:id', middleware.requireAuthentication,function(req, res) {
 	//res.send('Asking for products with id of '+req.params.id);
 	var prodid = parseInt(req.params.id, 10);
-	
+		
 
-	db.Product.findById(prodid).then(function(product){
+	db.Product.findOne({
+		where :{
+			id:prodid,
+			userId: req.user.get('id')
+		}
+	}).then(function(product){
 
 		if(!!product){
 			res.json(product.toJSON());
@@ -116,7 +123,8 @@ app.delete('/products/:id',  middleware.requireAuthentication,function(req, res)
 
 	db.Product.destroy({
 		where :{
-			id: prodid
+			id: prodid,
+			userId : req.user.get('id')
 		}
 	}).then(function(rowdeletedcount){
 		if(rowdeletedcount===0){
@@ -155,7 +163,12 @@ app.put('/products/:id', middleware.requireAuthentication, function(req, res) {
 	if(body.hasOwnProperty('isecofriendly')){
 		atrributes.isecofriendly = body.isecofriendly;
 	}
-	db.Product.findById(prodid).then(function(product){
+	db.Product.findOne({
+		where :{
+			id : prodid,
+			userId : req.user.get('id')
+		}
+	}).then(function(product){
 			if(product){
 			 return	product.update(atrributes);
 			}else{
